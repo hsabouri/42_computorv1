@@ -1,82 +1,62 @@
-fn sqrt(num: f64) -> f64 {
-    let mut y:  f64 = num;
-    let x2:     f64 = y * 0.5;
-    let i:  *mut u64 = unsafe {
-        &mut *(&mut y as *mut f64 as *mut u64)
-    };
+mod maths;
+use std::f64::EPSILON;
 
-    unsafe { *i = 0x5fe6eb50c7b537a9 - (*i >> 1) };
-    y = unsafe {
-        *(i as *mut f64)
-    };
-    for _ in 0..6 {
-        y = y * (1.5 - (x2 * y * y));
-            // Newton method 4 times for double precision
-    }
+impl maths::Polynomial {
+    pub fn to_string(&self) -> String {
+        let mut res = String::new();
 
-    1.0 / y
-}
-
-pub struct Polynomial {
-    a: f64,
-    b: f64,
-    c: f64,
-}
-
-pub struct Complex {
-    a: f64,
-    b: f64,
-}
-
-impl Polynomial {
-    pub fn a(&self) -> &f64 {
-        &self.a
-    }
-
-    pub fn b(&self) -> &f64 {
-        &self.b
-    }
-
-    pub fn c(&self) -> &f64 {
-        &self.c
-    }
-
-    pub fn new(a: f64, b: f64, c:f64) -> Polynomial {
-        Polynomial { a: a, b: b, c: c }
-    }
-
-    pub fn delta(&self) -> f64 {
-        self.b * self.b - 4.0 * self.a * self.c
-    }
-
-    pub fn solve(&self) -> Vec<Complex>  {
-        let delta = self.delta();
-        let mut res = Vec::<Complex>::new();
-
-        if delta == 0.0 {
-            res.push(Complex {
-                a: (- self.b()) / (self.a() * 2.0),
-                b: 0.0
-            });
-        } else if delta > 0.0 {
-            res.push(Complex {
-                a: (- self.b() - sqrt(delta)) / (2.0 * self.a()),
-                b: 0.0
-            });
-            res.push(Complex {
-                a: (- self.b() + sqrt(delta)) / (2.0 * self.a()),
-                b: 0.0
-            });
+        if self.a > EPSILON && self.a < - EPSILON {
+            res = format!("{}{}x^2 ", res, self.a);
+        } else {
+            res = format!("{}0x^2 ", res);
         }
+        if self.b < -EPSILON {
+            res = format!("{}{}x ", res, self.b);
+        } else if self.b > EPSILON {
+            res = format!("{}+ {}x ", res, self.b);
+        } else {
+            res = format!("{}+ 0x ", res);
+        }
+        if self.c < -EPSILON {
+            res = format!("{}{}", res, self.c);
+        } else if self.c > EPSILON {
+            res = format!("{}+ {}", res, self.c);
+        } else {
+            res = format!("{}+ 0", res);
+        }
+
         res
     }
 }
 
+impl maths::Complex {
+    pub fn print(&self) {
+        if self.b < -EPSILON {
+            println!("{} {}i", self.a, self.b);
+        } else if self.b > EPSILON {
+            println!("{} + {}i", self.a, self.b);
+        } else {
+            println!("{} + {}i", self.a, 0);
+        }
+    }
+}
+
 fn main() {
-    let poly = Polynomial { a: 10.0, b: -5.0, c: -1.0 };
-    let solution = poly.solve();
+    let mut left = maths::Polynomial { a: 2.5, b: 8.0, c: 10.0 };
+    let mut right = maths::Polynomial { a: 0.0, b: -1.0, c: -1.0 };
+
+    println!("Parsed :\n\t{} = {}", left.to_string(), right.to_string());
+    maths::reduce(&mut left, &mut right);
+    let solutions = left.solve();
     
-    for x in solution {
-        println!("{} + {}i", x.a, x.b);
+    println!("Reduced to :\n\t{} = 0", left.to_string());
+    println!("Solutions :");
+
+    if solutions.len() == 0 {
+        println!("No solution for this equation !");
+    }
+
+    for solution in solutions {
+        solution.print();
     }
 }
