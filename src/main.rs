@@ -52,6 +52,7 @@ fn main() {
     let solutions: Vec<maths::Complex>;
 
     test.parse();
+    /*
     println!("Parsed :\n\t{} = {}", left.to_string(), right.to_string());
     maths::reduce(&mut left, &mut right);
 
@@ -67,4 +68,5 @@ fn main() {
     for solution in solutions {
         println!("{}", solution.to_string());
     }
+    */
 }
