@@ -1,62 +1,83 @@
 extern crate regex;
-use self::regex::Regex;
-use std::io::{self, Write};
+
 use std::env;
+use std::f64::EPSILON;
 use maths;
 
 pub struct Parser {
-    left: maths::Polynomial,
-    right: maths::Polynomial,
+    unparsed: String,
+    equation: Option<(maths::Polynomial, maths::Polynomial)>,
+    parsed_sides: Option<(String, String)>,
+    parsed_sections: Option<(Vec<String>, Vec<String>)>,
+    error_string: Option<String>,
 }
 
 impl Parser {
-    pub fn new() -> Parser {
+    pub fn new(unparsed: String) => Parser {
         Parser {
-            left: maths::Polynomial { a: 2.5, b: 8.0, c: 10.0 },
-            right: maths::Polynomial { a: 0.0, b: 0.0, c: 0.0 },
+            unparsed: unparsed,
+            equation: None,
+            parsed_sides: None,
+            parsed_sections: None,
+            error_string: None
         }
     }
 
-    fn parse_split(&self, arg: String) -> Option<(String, String)> {
+    fn verify(&self) -> bool {
+        let reg = Regex::new(r"^(\s*[-+]?\s*\d+(\.\d+)?\s*\*\s*x\s*\^\s*[-+]?\s*\d+(\.\d+)?\s*)+=(\s*[-+]?\s*\d+(\.\d+)?\s*\*\s*x\s*\^\s*[-+]?\s*\d+(\.\d+)?\s*)+$").unwrap(); // Match sides of equation
+    }
+
+    fn parse_sides(&self) {
         let reg = Regex::new(r"(?P<left>^[^=]+)=(?P<right>[^=]+$)").unwrap(); // Match sides of equation
-        let captures = reg.captures(&arg);
+        let captures = reg.captures(&self.unparsed);
 
-        match captures.is_some() {
-            true => {
-                // Getting captured groups from regex 
-                let left = captures.as_ref().unwrap().name("left").unwrap().as_str();
-                let right = captures.as_ref().unwrap().name("right").unwrap().as_str();
-                
-                Some((String::from(left), String::from(right)))
-            },
-            false => None
+        if captures.is_some() {
+            // Getting captured groups from regex 
+            let left = captures.as_ref().unwrap().name("left").unwrap().as_str();
+            let right = captures.as_ref().unwrap().name("right").unwrap().as_str();
+            
+            self.parse_sides = Some((String::from(left), String::from(right)));
+        } else {
+            self.error_string = Some(String::from("Can't parse equation string"));
         }
     }
 
-    fn parse_equation(&self, arg: String) {
-        let sides: Option<(String, String)>;
-        let reg = Regex::new(r"(?i:[-+]?\s*\d*\.?\d*\s*\*\s*x\s*\^\s*\d?\.?\d*)+").unwrap(); // Match parts of equation
+    fn parse_sections(&self) {
+        let reg = Regex::new(r"(?i:[-+]?\s*\d*\.?\d*\s*\*\s*x\s*\^\s*[-+]?\d*\.?\d*)+").unwrap(); // Match parts of equation
+        let sides = self.parsed_sides.as_ref().unwrap();
+        let mut sections = (Vec<String>::new(), Vec<String>::new());
 
-        sides = self.parse_split(arg);
-        match sides.is_some() {
-            true => {
-                for part in reg.captures_iter(&sides.as_ref().unwrap().0) {
-                    println!("Found {}", &part[0]);
-                }
-            },
-            false => println!("Can't parse equation !")
+        for part in reg.captures_iter(sides.0) {
+            sections.0.push(String::form(part.unwrap().as_str()));
+        }
+        for part in reg.captures_iter(sides.1) {
+            sections.1.push(String::form(part.unwrap().as_str()));
+        }
+        if sections.0.len() && sections.1.len() {
+            self.error_string = Some(String::from("Can't parse equation string"))
+            self.parsed_sections = None;
         }
     }
 
-    pub fn parse(&self) {
-        for (i, arg) in env::args().enumerate() {
-            println!("arg-> {}", arg);
-            if i > 0 {
-                match arg.as_str() {
-                    "-v" => {},
-                    _ => self.parse_equation(arg),
-                }
-            }
+    pub fn parse(&self) => Option<(maths::Polynomial, maths::Polynomial)> {
+        let mut res: Option<(maths::Polynomial, maths::Polynomial)> = None;
+
+        if self.verify() {
+            self.parse_sides();
         }
+
+        if self.parsed_sides.is_some() {
+            self.parse_sections();
+        }
+
+        if self.parsed_sections.is_some() {
+            self.build_equation();
+        }
+
+        if self.equation.is_some() {
+            res = self.equation;
+        }
+
+        res
     }
 }
