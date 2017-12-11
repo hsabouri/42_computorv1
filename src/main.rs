@@ -48,10 +48,10 @@ impl maths::Complex {
 fn main() {
     let mut left = maths::Polynomial { a: 2.5, b: 8.0, c: 10.0 };
     let mut right = maths::Polynomial { a: 0.0, b: -1.0, c: -1.0 };
-    let mut parser = parser::Parser::new();
+    let mut parser = parser::Parser::new(String::from("  - 5.876   *  x ^ 2 + 1 * x ^ 1 - 8.9 * x ^ 0 = 0 * x ^ 0"));
     let solutions: Vec<maths::Complex>;
 
-    parser.parse();
+    let equation = parser.parse();
     /*
     println!("Parsed :\n\t{} = {}", left.to_string(), right.to_string());
     maths::reduce(&mut left, &mut right);
