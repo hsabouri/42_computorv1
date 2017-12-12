@@ -46,12 +46,20 @@ impl maths::Complex {
 }
 
 fn main() {
-    let mut left = maths::Polynomial { a: 2.5, b: 8.0, c: 10.0 };
-    let mut right = maths::Polynomial { a: 0.0, b: -1.0, c: -1.0 };
-    let mut parser = parser::Parser::new(String::from("  - 5.876   *  x ^ 2 + 1 * x ^ 1 - 8.9 * x ^ 0 = 0 * x ^ 0"));
-    let solutions: Vec<maths::Complex>;
+    let error: Option<String>;
+    let arg = parser::get_from_args();
 
-    let equation = parser.parse();
+    if arg.is_some() {
+        error = parser::parse(&arg.unwrap()).1;
+    } else {
+        error = Some(String::from("No equation string given !"));
+    }
+    
+    if error.is_some() {
+        println!("Error: {}", &error.unwrap());
+    } else {
+        println!("Success: Equation successfully parsed !");
+    }
     /*
     println!("Parsed :\n\t{} = {}", left.to_string(), right.to_string());
     maths::reduce(&mut left, &mut right);
