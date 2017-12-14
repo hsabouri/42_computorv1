@@ -30,11 +30,10 @@ pub struct Complex {
 }
 
 impl Polynomial {
-
     pub fn new() -> Polynomial {
         Polynomial { a: 0.0, b: 0.0, c: 0.0}
     }
-    
+
     pub fn delta(&self) -> f64 {
         self.b * self.b - 4.0 * self.a * self.c 
     }

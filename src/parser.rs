@@ -60,21 +60,41 @@ fn parse_sections(arg: &(String, String)) -> Option<(Vec<String>, Vec<String>)> 
 }
 
 fn is_valid_order(number: f64) -> bool {
-    if number <= 0 + EPSILON && number >= 0 - EPSILON {
-        true
-    } else if number <= 1 + EPSILON && number >= 1 - EPSILON {
-        true
-    } else if number <= 2 + EPSILON && number >= 2 - EPSILON {
-        true
+    let ret: bool;
+
+    if number <= 0.0 + EPSILON && number >= 0.0 - EPSILON {
+        ret = true;
+    } else if number <= 1.0 + EPSILON && number >= 1.0 - EPSILON {
+        ret = true;
+    } else if number <= 2.0 + EPSILON && number >= 2.0 - EPSILON {
+        ret = true;
     } else {
-        false
+        ret = false;
+    }
+
+    ret
+}
+
+fn update_polynomial(polynom: &mut maths::Polynomial, a: f64, b: i64) {
+    match b {
+        2 => {
+            polynom.a += a;
+        },
+        1 => {
+            polynom.b += a;
+        },
+        0 => {
+            polynom.c += a;
+        },
+        _ => {}
     }
 }
 
-fn build_equation(sections: (Vec::<String>, Vec::<String>)) -> Option<(maths::Polynomial, maths::Polynomial)> {
+fn build_equation(sections: (Vec<String>, Vec<String>)) -> Option<(maths::Polynomial, maths::Polynomial)> {
     let reg = Regex::new(BUILD_REGEX).unwrap();
     let mut error: bool = false;
-    let mut ret = (maths::Polynomial::new(), maths::Polynomial::new());
+    let mut equation = (maths::Polynomial::new(), maths::Polynomial::new());
+    let ret: Option<(maths::Polynomial, maths::Polynomial)>;
 
     for part in sections.0.iter() {
         let captures = reg.captures(&part);
@@ -83,22 +103,51 @@ fn build_equation(sections: (Vec::<String>, Vec::<String>)) -> Option<(maths::Po
             error = true;
             break;
         } else {
-            let a = unspace(String::from(captures.as_ref().unwrap().name("a").unwrap().as_str()));
-            let b = unspace(String::from(captures.as_ref().unwrap().name("b").unwrap().as_str()));
+            let a = unspace(String::from(captures.as_ref().unwrap().name("a").unwrap().as_str())).parse::<f64>().unwrap();
+            let b = unspace(String::from(captures.as_ref().unwrap().name("b").unwrap().as_str())).parse::<f64>().unwrap();
 
-            // CODE HERE
+            if is_valid_order(b) {
+                update_polynomial(&mut equation.0, a, b as i64);
+            } else {
+                error = true;
+                break;
+            }
         }
     }
+    if !error {
+        for part in sections.1.iter() {
+            let captures = reg.captures(&part);
+
+            if !captures.is_some() {
+                error = true;
+                break;
+            } else {
+                let a = unspace(String::from(captures.as_ref().unwrap().name("a").unwrap().as_str())).parse::<f64>().unwrap();
+                let b = unspace(String::from(captures.as_ref().unwrap().name("b").unwrap().as_str())).parse::<f64>().unwrap();
+
+                if is_valid_order(b) {
+                    update_polynomial(&mut equation.1, a, b as i64);
+                } else {
+                    error = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    if !error {
+        ret = Some(equation);
+    } else {
+        ret = None;
+    }
+    ret
 }
 
 pub fn parse(arg: &String) -> (Option<(maths::Polynomial, maths::Polynomial)>, Option<String>) {
-    /*
-    let mut equation: Option<(maths::Polynomial, maths::Polynomial)> = None;
-    let mut error: Option<String> = None;
-    */
-    let mut ret: (Option<(maths::Polynomial, maths::Polynomial)>, Option<String>) = (None, None);
     let mut sides: Option<(String, String)> = None;
     let mut sections: Option<(Vec<String>, Vec<String>)> = None;
+    let mut equation: Option<(maths::Polynomial, maths::Polynomial)> = None;
+    let mut ret: (Option<(maths::Polynomial, maths::Polynomial)>, Option<String>);
 
     if verify(arg) {
         sides = parse_sides(arg);
@@ -113,12 +162,15 @@ pub fn parse(arg: &String) -> (Option<(maths::Polynomial, maths::Polynomial)>, O
     }
 
     if sections.is_some() {
-        for section in &sections.as_ref().unwrap().0 {
-            println!("left: {}", section);
-        }
-        for section in &sections.as_ref().unwrap().1 {
-            println!("right: {}", section);
-        }
+        equation = build_equation(sections.unwrap());
+    } else {
+        ret = (None, Some(String::from("Can't parse Equation")));
+    }
+
+    if equation.is_some() {
+        ret = (equation, None);
+    } else {
+        ret = (None, Some(String::from("Only equation of 1st and 2nd order are supported.")));
     }
 
     ret
