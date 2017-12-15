@@ -6,7 +6,7 @@ impl maths::Polynomial {
     pub fn to_string(&self) -> String {
         let mut res = String::new();
 
-        if self.a > EPSILON && self.a < - EPSILON {
+        if self.a > EPSILON || self.a < - EPSILON {
             res = format!("{}{}x^2 ", res, self.a);
         } else {
             res = format!("{}0x^2 ", res);
@@ -57,20 +57,22 @@ fn main() {
         } else {
             let (mut left, mut right) = parsed.0.unwrap();
 
-            println!("Success: {} = {}", left.to_string(), right.to_string());
+            println!("Successfully parsed equation:\n\t{} = {}", left.to_string(), right.to_string());
 
             maths::reduce(&mut left, &mut right);
             println!("Reduced to :\n\t{} = 0", left.to_string());
 
             let solutions = left.solve();
      
-            if solutions.len() == 0 {
-                println!("No solution found.");
-            } else {
+            if solutions.0.is_some() {
                 println!("Solutions:");
-                for solution in solutions {
+                for solution in solutions.0.as_ref().unwrap() {
                     println!("{}", solution.to_string());
                 }
+            } else if solutions.1.is_some() {
+                println!("Solution:\n{}", solutions.1.unwrap());
+            } else {
+                println!("No solution.");
             }
         }
     } else {

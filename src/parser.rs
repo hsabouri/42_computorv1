@@ -147,7 +147,7 @@ pub fn parse(arg: &String) -> (Option<(maths::Polynomial, maths::Polynomial)>, O
     let mut sides: Option<(String, String)> = None;
     let mut sections: Option<(Vec<String>, Vec<String>)> = None;
     let mut equation: Option<(maths::Polynomial, maths::Polynomial)> = None;
-    let mut ret: (Option<(maths::Polynomial, maths::Polynomial)>, Option<String>);
+    let mut ret: (Option<(maths::Polynomial, maths::Polynomial)>, Option<String>) = (None, None);
 
     if verify(arg) {
         sides = parse_sides(arg);
@@ -155,19 +155,19 @@ pub fn parse(arg: &String) -> (Option<(maths::Polynomial, maths::Polynomial)>, O
         ret = (None, Some(String::from("Can't parse Equation")));
     }
 
-    if sides.is_some() {
+    if sides.is_some() && !ret.1.is_some() {
         sections = parse_sections(&sides.unwrap());
     } else {
         ret = (None, Some(String::from("Can't parse Equation")));
     }
 
-    if sections.is_some() {
+    if sections.is_some() && !ret.1.is_some() {
         equation = build_equation(sections.unwrap());
     } else {
         ret = (None, Some(String::from("Can't parse Equation")));
     }
 
-    if equation.is_some() {
+    if equation.is_some() && !ret.1.is_some() {
         ret = (equation, None);
     } else {
         ret = (None, Some(String::from("Only equation of 1st and 2nd order are supported.")));
@@ -179,11 +179,8 @@ pub fn parse(arg: &String) -> (Option<(maths::Polynomial, maths::Polynomial)>, O
 pub fn get_from_args() -> Option<String> {
     let mut equation: Option<String> = None;
     for arg in env::args() {
-        println!("ARG => {}", &arg);
         match arg.find("/").is_some() {
-            true => {
-                println!("Matched path")
-            },
+            true => {},
             false => {
                 equation = Some(arg.clone());
                 break;

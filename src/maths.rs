@@ -98,13 +98,14 @@ impl Polynomial {
         res
     }
 
-    pub fn solve(&self) -> Vec<Complex> {
+    pub fn solve(&self) -> (Option<Vec<Complex>>, Option<String>) {
         let degree = self.degree();
 
         match degree {
-            2 => self.solve_2(),
-            1 => self.solve_1(),
-            _ => { Vec::<Complex>::new() }
+            2 => (Some(self.solve_2()), None),
+            1 => (Some(self.solve_1()), None),
+            0 => (None, Some(String::from("Any number in the real space is a solution."))),
+            _ => (None, None)
         }
     }
 }
