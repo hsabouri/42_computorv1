@@ -1,7 +1,0 @@
-[package]
-name = "computor-v1"
-version = "0.1.0"
-authors = ["Hugo Sabourin <hsabouri@student.42.fr>"]
-
-[dependencies]
-regex = "0.2"
