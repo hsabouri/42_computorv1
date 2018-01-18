@@ -1,0 +1,23 @@
+{
+  "name": "computor-v1",
+  "version": "1.0.0",
+  "description": "42 Project : Computor-v1",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/hsabouri/42_computorv1.git"
+  },
+  "author": "hsabouri",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hsabouri/42_computorv1/issues"
+  },
+  "homepage": "https://github.com/hsabouri/42_computorv1#readme",
+  "dependencies": {
+    "args": "^3.0.8",
+    "xregexp": "^4.0.0"
+  }
+}
